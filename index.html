@@ -69,7 +69,7 @@ body[data-route="gate"] .editfab{display:block}
 /* forest (category choice) */
 .forest{padding-block:34px 70px;color:var(--parch)}
 .forest .top{text-align:center;margin-bottom:26px}
-.forest .top p{font-family:var(--hand);font-size:1.6rem;color:var(--lantern)}
+.forest .top p{font-family:var(--hand);font-size:1.6rem;color:var(--parch);text-shadow:0 1px 8px rgba(0,0,0,.8)}
 .forest .top h2{font-size:clamp(1.9rem,6vw,3rem);margin-top:4px}
 .paths{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
 .path{display:flex;flex-direction:column;text-align:left;background:var(--parch);color:var(--ink);border:0;padding:0;border-radius:4px;overflow:hidden;box-shadow:0 0 0 3px #2a1f14,0 0 0 5px var(--lantern-d),0 14px 40px rgba(0,0,0,.5);transition:transform .25s,box-shadow .25s;animation:rise .7s both}
@@ -199,6 +199,20 @@ body[data-route="burrow"] .foot{padding-bottom:calc(96px + env(safe-area-inset-b
 .ferr a{color:#5c1820;font-weight:600}
 body.pub:not(.owner) [data-act="edit"]{display:none!important}
 body.pub .previewtag{display:none}
+.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:8px}
+.plan{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center;background:var(--paper);border:2px solid rgba(43,28,16,.35);border-radius:4px;padding:12px 6px;min-height:112px;transition:transform .2s,box-shadow .2s}
+.plan:hover{transform:translateY(-2px)}
+.plan b{font-family:var(--display);font-weight:400;font-size:1.1rem}
+.plan .pp{font-family:var(--display);font-size:1.3rem;line-height:1.2}
+.plan em{font-family:var(--hand);font-style:normal;font-size:1.3rem;color:var(--berry);line-height:1;min-height:1em}
+.plan.on{border-color:var(--lantern-d);background:#fff3d2;box-shadow:0 0 0 4px rgba(245,185,87,.5)}
+.pastbox{max-width:560px;display:flex;flex-direction:column;gap:14px}
+.plist{list-style:none;margin:0;padding:0}
+.plist li{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dotted rgba(43,28,16,.35)}
+.plist li span{flex:1;min-width:0;overflow-wrap:anywhere}
+.ptotal{margin:0;font-size:1.2rem}
+.pricehint{margin:0;font-size:1.2rem}
+@media (max-width:560px){.plans{grid-template-columns:minmax(0,1fr)}.plan{display:grid;grid-template-columns:1fr auto;align-items:center;text-align:left;min-height:0;padding:12px 14px;gap:0 10px}.plan em{grid-column:1/-1}}
 .thanks{text-align:center;padding-block:40px}
 .thanks h1{font-size:clamp(2rem,6vw,3.2rem);margin-block:10px}
 .thanks img{width:150px;border-radius:50%;border:4px double var(--lantern-d)}
@@ -220,7 +234,10 @@ body[data-route="burrow"] .previewtag{display:none}
 .addb{margin-top:10px;background:transparent;border:1px dashed var(--ink-soft);border-radius:3px;padding:6px 12px}
 .dhint{font-size:.9rem;color:var(--ink-soft);margin-top:6px}
 
+@media (max-width:900px){body[data-route="forest"] .lamp{display:none}}
 @media (max-width:760px){
+  .lamp b{width:26px;height:36px}.lamp i{height:clamp(24px,6vh,60px)}
+  .forest .top p{text-shadow:0 1px 6px rgba(0,0,0,.7)}
   .hero2,.two{grid-template-columns:minmax(0,1fr)}
   .paths{grid-template-columns:minmax(0,1fr)}
   .shelves,.worlds{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
@@ -281,6 +298,8 @@ var DEF={
   snail:[{t:"A short story",d:"Written by the author for that month's theme."},{t:"A word bank",d:"Words to play with, collect and write with."},{t:"Stickers",d:"Designed around the month's theme."},{t:"Other fun surprises",d:"A little something extra, never the same twice."}],
   sealed:[{t:"",d:"Who the letter is for, and what you like to call them."},{t:"",d:"Whether we write it from your details, or you write the whole letter and we print it."},{t:"",d:"A photo of the two of you. We print it and tuck it in."},{t:"",d:"A song they love or a memory tied to one. We add its Spotify code."}]
  },
+ plans:[{months:1,price:900},{months:3,price:2500},{months:6,price:5100}],
+ past:{show:true,title:"Missed a month?",sub:"Choose any earlier edition you would like to own. You can add more than one.",items:[]},
  theme:{month:"November 2026",name:"Cozy Bakery",blurb:"Warm ovens, cinnamon and a story that smells like fresh bread."},
  shelves:[
   {name:"The Love Letter Shelf",genre:"Romance"},{name:"The Secret Keeper's Shelf",genre:"Mystery / Thriller"},
@@ -299,8 +318,9 @@ var DEF={
  methods:["JazzCash","Bank transfer"],
  pay:{bank:"Bank name (placeholder)",title:"Account title (placeholder)",acc:"0000 0000 0000 00",iban:"PK00 XXXX 0000 0000 0000 0000",jazz:"03XX XXXXXXX",jazzName:"Account name (placeholder)"}
 };
-var S=load();
+var S=load();fixPast();
 function clone(o){return JSON.parse(JSON.stringify(o))}
+function fixPast(){var P=S.past;if(!P)return;if(!P.seeded){if(!P.items||!P.items.length)P.items=[{month:'October 2026',title:'Halloween',price:900,on:true}];P.seeded=true}}
 function merge(d,s){for(var k in s){var v=s[k];if(v&&typeof v==='object'&&!Array.isArray(v)){d[k]=d[k]&&typeof d[k]==='object'&&!Array.isArray(d[k])?d[k]:{};for(var q in v){var w=v[q];if(w&&typeof w==='object'&&!Array.isArray(w)){d[k][q]=Object.assign({},d[k][q],w)}else{d[k][q]=w}}}else{d[k]=v}}return d}
 function load(){var d=clone(DEF);if(PUBLIC)return d;try{var j=localStorage.getItem('tlp-settings');if(j)merge(d,JSON.parse(j))}catch(e){}return d}
 var saveT=null,dirty=false,saving=false,loaded=!PUBLIC,PASS='';
@@ -324,7 +344,7 @@ addEventListener('beforeunload',function(e){if(PUBLIC&&(dirty||saving)){e.preven
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function money(n){return 'PKR '+Number(n||0).toLocaleString('en-US')}
 var $=function(s,r){return (r||document).querySelector(s)};
-var view=$('#view'),sel={shelf:null,tea:0,world:0,method:0},order=null,timers=[];
+var view=$('#view'),sel={shelf:null,tea:0,world:0,method:0,plan:0,past:[]},order=null,timers=[];
 var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
 $('#barlogo').src=IMG.logo;
 
@@ -374,8 +394,24 @@ function cp(l,v){return '<div class="copy"><div><small>'+esc(l)+'</small><b>'+es
 function payDetails(m,price){var p=S.pay,j=/jazz/i.test(m);return '<h3 class="fh" style="margin-top:0">Pay by '+esc(m)+'</h3><p class="big">'+money(price)+'</p>'+(j?cp('JazzCash number',p.jazz)+cp('Account name',p.jazzName):cp('Bank',p.bank)+cp('Account title',p.title)+cp('Account number',p.acc)+cp('IBAN',p.iban))}
 function payBlock(price){var i0=Math.min(sel.method,S.methods.length-1);return '<h3 class="fh full">Payment</h3>'+radios('method','How would you like to pay?',S.methods.map(function(m){return [m,m]}),i0)+'<div class="f full"><div class="paybox" id="paybox" data-price="'+price+'">'+payDetails(S.methods[i0],price)+'</div></div>'+field('shot','Payment screenshot',{type:'file',full:true,hint:'Pay the amount above, then upload your screenshot here to place your order. It is required.'})}
 function formPage(kind,back_to,title,price,unit,eyebrow,intro,inner,btn){
- return page(back(back_to,'Back')+'<div class="sect" style="margin-top:12px"><p class="eyebrow">'+esc(eyebrow)+'</p><h1 style="font-size:clamp(1.9rem,5vw,2.8rem)">'+esc(title)+'</h1><p class="lede" style="margin-top:6px">'+intro+'</p></div><form class="formcard" data-kind="'+kind+'" data-title="'+esc(title)+'" data-price="'+price+'" data-unit="'+esc(unit)+'"><div class="formgrid">'+inner+'</div><div class="sr" aria-hidden="true"><label for="hp_check">Leave this empty</label><input id="hp_check" name="hp_check" tabindex="-1" autocomplete="off"></div><p class="ferr" id="formerr" role="alert" hidden></p><div style="margin-top:22px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><button class="btn" type="submit">'+btn+'</button><span class="price" style="margin:0"><strong style="font-size:1.6rem">'+money(price)+'</strong><span>'+esc(unit)+'</span></span></div><p class="disc">Delivered within Pakistan by Pakistan Post in '+esc(S.site.delivery)+'. After you place your order, we will ask you to send us a quick DM on Instagram.</p></form>')}
+ return page(back(back_to,'Back')+'<div class="sect" style="margin-top:12px"><p class="eyebrow">'+esc(eyebrow)+'</p><h1 style="font-size:clamp(1.9rem,5vw,2.8rem)">'+esc(title)+'</h1><p class="lede" style="margin-top:6px">'+intro+'</p></div><form class="formcard" data-kind="'+kind+'" data-title="'+esc(title)+'" data-price="'+price+'" data-unit="'+esc(unit)+'"><div class="formgrid">'+inner+'</div><div class="sr" aria-hidden="true"><label for="hp_check">Leave this empty</label><input id="hp_check" name="hp_check" tabindex="-1" autocomplete="off"></div><p class="ferr" id="formerr" role="alert" hidden></p><div style="margin-top:22px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><button class="btn" type="submit">'+btn+'</button><span class="price" style="margin:0"><strong id="formprice" style="font-size:1.6rem">'+money(price)+'</strong><span id="formunit">'+esc(unit)+'</span></span></div><p class="disc">Delivered within Pakistan by Pakistan Post in '+esc(S.site.delivery)+'. After you place your order, we will ask you to send us a quick DM on Instagram.</p></form>')}
 
+function PL(){var a=(S.plans||[]).filter(function(p){return Number(p.months)>0&&Number(p.price)>0}).map(function(p){return{months:Number(p.months),price:Number(p.price)}});return a.length?a:[{months:1,price:Number(S.cats.snail.price)||0}]}
+function planSave(p){return p.months*(Number(S.cats.snail.price)||0)-p.price}
+function monthsTxt(p){return p.months+(p.months===1?' month':' months')}
+function planText(p){var sv=planSave(p);return monthsTxt(p)+' \u00b7 '+money(p.price)+(sv>0?' (save '+money(sv)+')':'')}
+function planIdx(){return Math.min(Math.max(sel.plan||0,0),PL().length-1)}
+function pLabel(e){return [e.month,e.title].filter(Boolean).join(' \u00b7 ')}
+function pastChosen(){var it=(S.past&&S.past.items)||[];return sel.past.filter(function(i,k,a){var e=it[i];return e&&e.on!==false&&(e.month||e.title)&&a.indexOf(i)===k})}
+function pastTotal(){return pastChosen().reduce(function(t,i){return t+(Number(S.past.items[i].price)||0)},0)}
+function pastSec(){var P=S.past;if(!P||!P.show)return '';var items=P.items||[],h='<section class="sect" id="past"><h2>'+esc(P.title)+'</h2><p class="sub">'+esc(P.sub)+'</p>';
+ var listed=items.map(function(e,i){return{e:e,i:i}}).filter(function(x){return x.e.month||x.e.title});
+ if(!listed.length)return h+'<div class="note" style="max-width:560px"><div>Earlier editions will be listed here as each month goes by.</div></div></section>';
+ var ch=pastChosen();
+ var pr=listed.filter(function(x){return x.e.on!==false}).map(function(x){return Number(x.e.price)||0}),same=pr.length&&pr.every(function(v){return v===pr[0]});
+ h+='<div class="pastbox">'+(pr.length?'<p class="pricehint">'+(same?'Each edition is <b>'+money(pr[0])+'</b>.':'Prices are shown next to each month.')+'</p>':'')+'<label class="sr" for="pastpick">Choose a past edition</label><select id="pastpick"><option value="">Choose a past month\u2026</option>'+listed.map(function(x){var gone=x.e.on===false,taken=ch.indexOf(x.i)>-1;return '<option value="'+x.i+'"'+(gone||taken?' disabled':'')+'>'+esc(pLabel(x.e))+' \u00b7 '+money(x.e.price)+(gone?' (sold out)':taken?' (added)':'')+'</option>'}).join('')+'</select>';
+ if(ch.length)h+='<ul class="plist">'+ch.map(function(i){var e=S.past.items[i];return '<li><span>'+esc(pLabel(e))+'</span><b>'+money(e.price)+'</b><button type="button" class="mini" data-prm="'+i+'">Remove</button></li>'}).join('')+'</ul><p class="ptotal">Total <b>'+money(pastTotal())+'</b></p>';
+ return h+'<div><button class="btn" id="pastbtn" data-go="past-order"'+(ch.length?'':' disabled')+'>Buy now</button></div></div></section>'}
 function notes(list){return list.map(function(n,i){return '<div class="note"><i>'+(i+1)+'</i><div>'+(n.t?'<b>'+esc(n.t)+'</b><br>':'')+esc(n.d)+'</div></div>'}).join('')}
 function albumSec(k){var a=S.albums[k];if(!a||!a.show)return '';var it=a.items;return '<section class="sect"><h2>'+esc(a.title)+'</h2><p class="sub">'+esc(a.sub)+'</p>'+(it.length?'<div class="album">'+it.map(function(e,i){var cv=e.photos[0];return '<button class="alb" data-album="'+k+':'+i+'"><span class="cov">'+(cv?'<img src="'+cv+'" alt="">':'<em>No photos yet</em>')+'</span><b>'+esc(e.title)+'</b>'+(e.photos.length>1?'<small>'+e.photos.length+' photos</small>':'')+'</button>'}).join('')+'</div>':'<div class="note" style="max-width:560px"><div>Photos of past editions will appear here. Our first one is on its way.</div></div>')+'</section>'}
 /* ---------- routes ---------- */
@@ -385,11 +421,15 @@ R.forest=function(){var c=S.cats,art={snail:c.snail.img||IMG.cottage,burrow:c.bu
  return '<section class="forest"><div class="wrap"><div class="top"><p>'+esc(S.home.kicker)+'</p><h2>'+esc(S.home.title)+'</h2></div><div class="paths">'+['snail','burrow','sealed','elsewhere'].map(function(k){return '<button class="path" data-go="'+to[k]+'"><div class="art"><img src="'+art[k]+'" alt=""></div><div class="txt"><h3>'+esc(c[k].name)+'</h3><span class="tag">'+esc(c[k].tag)+'</span><span class="from">'+(k==='snail'?'':'from ')+money(c[k].price)+' '+esc(c[k].unit)+'</span></div></button>'}).join('')+'</div></div></section>'};
 R['snail-mail']=function(){var c=S.cats.snail,t=S.theme;
  var gal=[['g1','Deep in an ancient forest'],['g2','She writes a story for you'],['g3','The woodland helpers prepare it'],['g4','At the Little Post'],['g5','And at last, it finds you']];
- return page(back('forest')+'<section class="hero2"><div class="frame"><img src="'+(c.hero||IMG.cottage)+'" alt="A little cottage deep in the forest with a glowing window"></div><div><p class="eyebrow">Monthly Snail Mail Club</p><h1>'+esc(c.name)+'</h1><p class="lede">'+esc(c.about)+'</p><div class="stamp"><span>This month</span><b>'+esc(t.month)+'</b><span>&middot;</span><span>'+esc(t.name)+'</span></div><p class="disc" style="margin-top:12px">'+esc(t.blurb)+'</p><div class="price"><strong>'+money(c.price)+'</strong><span>'+esc(c.unit)+'. Delivered across Pakistan by Pakistan Post.</span></div><p style="margin-top:16px"><button class="btn" data-go="snail-order">Subscribe</button></p></div></section>'+
- '<section class="sect"><h2>What is inside every envelope</h2><div class="inside">'+notes(S.inside.snail)+'</div></section>'+
+ return page(back('forest')+'<section class="hero2"><div class="frame"><img src="'+(c.hero||IMG.cottage)+'" alt="A little cottage deep in the forest with a glowing window"></div><div><p class="eyebrow">Monthly Snail Mail Club</p><h1>'+esc(c.name)+'</h1><p class="lede">'+esc(c.about)+'</p><div class="stamp"><span>This month</span><b>'+esc(t.month)+'</b><span>&middot;</span><span>'+esc(t.name)+'</span></div><p class="disc" style="margin-top:12px">'+esc(t.blurb)+'</p><p class="eyebrow" style="margin-top:20px">Choose your plan</p><div class="plans" role="group" aria-label="Choose your plan">'+PL().map(function(p,i){var sv=planSave(p);return '<button type="button" class="plan'+(planIdx()===i?' on':'')+'" aria-pressed="'+(planIdx()===i)+'" data-plan="'+i+'"><b>'+esc(monthsTxt(p))+'</b><span class="pp">'+money(p.price)+'</span><em>'+(sv>0?'Save '+money(sv):'')+'</em></button>'}).join('')+'</div><p class="disc">Delivered across Pakistan by Pakistan Post.</p><p style="margin-top:14px"><button class="btn" id="planbtn" data-go="snail-order">Buy now &middot; '+money(PL()[planIdx()].price)+'</button></p></div></section>'+
+ pastSec()+'<section class="sect"><h2>What is inside every envelope</h2><div class="inside">'+notes(S.inside.snail)+'</div></section>'+
  '<section class="sect"><h2>How your letter travels</h2><p class="sub">From the cottage to your door.</p><div class="strip">'+gal.map(function(g){return '<figure><img src="'+IMG[g[0]]+'" alt="'+esc(g[1])+'"><figcaption>'+esc(g[1])+'</figcaption></figure>'}).join('')+'</div></section>'+albumSec('snail'))};
-R['snail-order']=function(){var c=S.cats.snail,t=S.theme;return formPage('snail','snail-mail',c.name,c.price,c.unit,'Subscribe','Tell us where to send your monthly envelope. This month\'s theme is <b>'+esc(t.name)+'</b>.',
- '<h3 class="fh full">About you</h3>'+contact('')+payBlock(c.price),'Order now')};
+R['snail-order']=function(){var c=S.cats.snail,t=S.theme,pl=PL(),i=planIdx(),p=pl[i];
+ return formPage('snail','snail-mail',c.name,p.price,'for '+monthsTxt(p),'Your order','Choose your plan and tell us where to send your envelope. This month\'s theme is <b>'+esc(t.name)+'</b>.',
+ '<h3 class="fh full">Your plan</h3>'+field('plan','Plan',{type:'select',opts:pl.map(planText),val:i,full:true})+'<h3 class="fh full">About you</h3>'+contact('')+payBlock(p.price),'Order now')};
+R['past-order']=function(){var ch=pastChosen();if(!ch.length){location.hash='snail-mail';return ''}var c=S.cats.snail,total=pastTotal();
+ return formPage('past','snail-mail',c.name+' (previous editions)',total,'one-time','Previous editions','Check your editions below, then tell us where to send them.',
+ '<h3 class="fh full">Your editions</h3><div class="full">'+ch.map(function(i){var e=S.past.items[i];return '<div class="sumline"><span>'+esc(pLabel(e))+'</span><span>'+money(e.price)+'</span></div>'}).join('')+'<div class="sumline"><span><b>Total</b></span><span><b>'+money(total)+'</b></span></div></div><h3 class="fh full">About you</h3>'+contact('')+payBlock(total),'Order now')};
 R.burrow=function(){var c=S.cats.burrow;
  var shelves=S.shelves.map(function(s,i){return '<button type="button" class="shelf'+(sel.shelf===i?' on':'')+'" data-shelf="'+i+'" style="--spine:'+SPINES[i%8]+'"><h3>'+esc(s.name)+'</h3><small>('+esc(s.genre)+')</small></button>'}).join('')+
   '<button type="button" class="shelf pick'+(sel.shelf==='pick'?' on':'')+'" data-shelf="pick"><h3>'+esc(S.pick.name)+'</h3><small>('+esc(S.pick.genre)+')</small><p>'+esc(S.pick.text)+'</p></button>';
@@ -448,6 +488,8 @@ function go(r){if(location.hash==='#'+r)render(false);else location.hash=r}
 /* ---------- events ---------- */
 view.addEventListener('click',function(e){var t=e.target.closest('button,[data-go],a');if(!t)return;
  if(t.id==='enterBtn'){var r=t.getBoundingClientRect();sparkle(r.left+r.width/2,r.top+r.height/2,140,true);var g=$('#gate');setTimeout(function(){sparkle(innerWidth/2,innerHeight/2,160,true)},350);if(g)g.classList.add('leaving');setTimeout(function(){go('forest')},1150);return}
+ if(t.dataset.plan!==undefined){sel.plan=+t.dataset.plan;view.querySelectorAll('.plan').forEach(function(b){var on=b===t;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});var pb=$('#planbtn'),pp=PL()[sel.plan];if(pb&&pp)pb.innerHTML='Buy now &middot; '+money(pp.price);return}
+ if(t.dataset.prm!==undefined){sel.past=sel.past.filter(function(x){return x!==+t.dataset.prm});render(true);return}
  if(t.dataset.album){var ap=t.dataset.album.split(':');openLb(ap[0],+ap[1]);return}
  if(t.dataset.go){go(t.dataset.go);return}
  if(t.dataset.shelf!==undefined){sel.shelf=t.dataset.shelf==='pick'?'pick':+t.dataset.shelf;view.querySelectorAll('.shelf').forEach(function(s){s.classList.toggle('on',s===t)});dock();return}
@@ -475,7 +517,7 @@ function send(f){var kind=f.dataset.kind,btn=f.querySelector('button[type=submit
  var g=function(id){var e=f.querySelector('#'+id);return e?e.value:''},hp=f.elements.hp_check?f.elements.hp_check.value:'';
  if(kind==='request'){
   api({action:'request',token:f.dataset.tok,hp:hp,name:g('rn'),phone:g('rp'),email:g('re'),universe:g('ru'),love:g('rt')},60000).then(function(r){if(r&&r.ok){order={kind:'request'};sparkle(innerWidth/2,innerHeight/2,60,true);go('thanks')}else fail(generic)}).catch(function(){fail(generic)});return}
- var c=collect(f),item=kind==='snail'?S.theme.month+' · '+S.theme.name:kind==='burrow'?g('shelfsel')+' / '+g('teasel'):kind==='sealed'?'Letter to '+g('to'):g('uni');
+ var c=collect(f),item=kind==='snail'?g('plan')+' · starting '+S.theme.month+' ('+S.theme.name+')':kind==='past'?pastChosen().map(function(i){return pLabel(S.past.items[i])}).join(' + '):kind==='burrow'?g('shelfsel')+' / '+g('teasel'):kind==='sealed'?'Letter to '+g('to'):g('uni');
  Promise.all(c.files.map(function(x){return new Promise(function(res){shrink(x.file,x.field==='shot'?1600:2200,res,x.field==='shot'?.8:.88)})})).then(function(ds){
   if(ds.some(function(d){return !d}))return fail('We could not read one of your pictures. Please choose a JPG or PNG and try again.');
   var files={};c.files.forEach(function(x,i){files[x.field]={data:ds[i],name:x.file.name}});
@@ -487,6 +529,8 @@ view.addEventListener('submit',function(e){e.preventDefault();var f=e.target;
  if(!PUBLIC){order={kind:f.dataset.kind};sparkle(innerWidth/2,innerHeight/2,60,true);go('thanks');return}
  send(f)});
 view.addEventListener('change',function(e){var t=e.target;
+ if(t.id==='plan'){var fm=t.closest('form'),pl2=PL(),p2=pl2[t.selectedIndex];if(p2){sel.plan=t.selectedIndex;fm.dataset.price=p2.price;var fp=$('#formprice'),fu=$('#formunit');if(fp)fp.textContent=money(p2.price);if(fu)fu.textContent='for '+monthsTxt(p2);var pbx=$('#paybox'),mm=fm.querySelector('input[name=method]:checked');if(pbx){pbx.dataset.price=p2.price;pbx.innerHTML=payDetails(mm?mm.value:S.methods[0],p2.price)}}return}
+ if(t.id==='pastpick'){if(t.value!==''){sel.past.push(+t.value);render(true)}return}
  if(t.name==='method'){var i=S.methods.indexOf(t.value);if(i>-1)sel.method=i;var b=$('#paybox');if(b)b.innerHTML=payDetails(t.value,+b.dataset.price)}
  if(t.name==='wmode'){var mine=t.value==='mine';view.querySelectorAll('[data-grp]').forEach(function(w){var on=w.dataset.grp===(mine?'mine':'ai');w.hidden=!on;w.querySelectorAll('input,textarea,select').forEach(function(c){c.disabled=!on})})}});
 
@@ -497,18 +541,21 @@ function inp(path,label,val,type){return '<label class="ed">'+label+'<input data
 function area(path,label,val,rows){return '<label class="ed">'+label+'<textarea data-path="'+path+'" rows="'+(rows||4)+'">'+esc(val)+'</textarea></label>'}
 function thumb(src){return '<img class="thumb" src="'+src+'" alt="">'}
 function imgCtl(label,path,def){var v=getp(path);return '<div class="ed">'+label+'<div class="row">'+thumb(v||def)+'<label class="addb pickb">Change picture<input class="sr" type="file" accept="image/*" data-img="'+path+'"></label>'+(v?'<button class="addb" data-imgreset="'+path+'">Use original</button>':'')+'</div></div>'}
-function listRows(path,keys,ph){return getp(path).map(function(it,i){return '<div class="row">'+keys.map(function(k){return '<input data-list="'+path+'" data-i="'+i+'" data-k="'+k+'" type="text" value="'+esc(k?it[k]:it)+'" placeholder="'+esc(ph[k]||'')+'" aria-label="'+esc(ph[k]||path)+'">'}).join('')+'<button class="x" data-rm="'+path+'" data-i="'+i+'" aria-label="Remove">&times;</button></div>'}).join('')}
+function listRows(path,keys,ph,ty){return getp(path).map(function(it,i){return '<div class="row">'+keys.map(function(k){return '<input data-list="'+path+'" data-i="'+i+'" data-k="'+k+'" type="'+((ty&&ty[k])||'text')+'"'+((ty&&ty[k])?' min="0"':'')+' value="'+esc(k?it[k]:it)+'" placeholder="'+esc(ph[k]||'')+'" aria-label="'+esc(ph[k]||path)+'">'}).join('')+'<button class="x" data-rm="'+path+'" data-i="'+i+'" aria-label="Remove">&times;</button></div>'}).join('')}
 function albumEd(k){var a=S.albums[k],h='<h4 class="edh">Past editions album</h4><label class="ed" style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-check="albums.'+k+'.show"'+(a.show?' checked':'')+'> Show this section on the page</label>'+inp('albums.'+k+'.title','Section title',a.title)+inp('albums.'+k+'.sub','Line under the title',a.sub);
  a.items.forEach(function(e,i){var p='albums.'+k+'.items.'+i;h+='<div class="entry"><b>Edition '+(i+1)+'</b>'+inp(p+'.title','Title (for example, October 2026 Halloween)',e.title)+area(p+'.text','What was included',e.text,4)+'<div class="ed">Photos</div><div class="thumbs">'+e.photos.map(function(ph,j){return '<span class="tb">'+thumb(ph)+'<button class="x" data-rm="'+p+'.photos" data-i="'+j+'" aria-label="Remove photo">&times;</button></span>'}).join('')+'</div><div class="row"><label class="addb pickb">Add photos<input class="sr" type="file" accept="image/*" multiple data-imgs="'+p+'.photos"></label><button class="addb" data-rm="albums.'+k+'.items" data-i="'+i+'">Remove this edition</button></div></div>'});
  return h+'<button class="addb" data-add="albums.'+k+'.items">Add an edition</button>'}
+function pastEd(){var P=S.past,h='<h4 class="edh">Previous editions for sale</h4><label class="ed" style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-check="past.show"'+(P.show?' checked':'')+'> Show this section on the page</label>'+inp('past.title','Section title',P.title)+inp('past.sub','Line under the title',P.sub);
+ P.items.forEach(function(e,i){var p='past.items.'+i;h+='<div class="entry"><b>Edition '+(i+1)+'</b>'+inp(p+'.month','Month (for example, October 2026)',e.month)+inp(p+'.title','Title or theme (for example, Halloween)',e.title)+inp(p+'.price','Price (PKR)',e.price,'number')+'<label class="ed" style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-check="'+p+'.on"'+(e.on!==false?' checked':'')+'> Available to buy</label><div class="row"><button class="addb" data-rm="past.items" data-i="'+i+'">Remove this edition</button></div></div>'});
+ return h+'<button class="addb" data-add="past.items">Add an edition</button><p class="dhint">Each edition has its own price, so change it here whenever you like. Customers choose from these on the Snail Mail page. Untick Available when you run out, and it shows as sold out.</p>'}
 function catEd(k,label,card,hero,extra){var c=S.cats[k];return '<details><summary>'+label+'</summary>'+imgCtl('Picture on the front, before they click',"cats."+k+".img",card)+imgCtl('Picture at the top of the page','cats.'+k+'.hero',hero)+inp('cats.'+k+'.name','Name',c.name)+inp('cats.'+k+'.tag','Short line on the front',c.tag)+area('cats.'+k+'.about','Description on the page',c.about,5)+inp('cats.'+k+'.unit','Price note',c.unit)+(extra||'')+albumEd(k)+'</details>'}
-function tplFor(n){if(/^albums\./.test(n))return{title:'New edition',text:'',photos:[]};if(/^inside\./.test(n))return{t:'',d:'New line'};return{shelves:{name:'New shelf',genre:'Genre'},universes:{name:'New universe',tag:'Short line'},teas:'New option',parcel:'New item',methods:'New method'}[n]}
+function tplFor(n){if(n==='plans')return{months:1,price:Number(S.cats.snail.price)||0};if(n==='past.items')return{month:'',title:'',price:Number(S.cats.snail.price)||0,on:true};if(/^albums\./.test(n))return{title:'New edition',text:'',photos:[]};if(/^inside\./.test(n))return{t:'',d:'New line'};return{shelves:{name:'New shelf',genre:'Genre'},universes:{name:'New universe',tag:'Short line'},teas:'New option',parcel:'New item',methods:'New method'}[n]}
 function openEd(keep){if(PUBLIC&&!loaded)return;var c=S.cats,t=S.theme,p=S.pay,h='',db=$('#dbody'),st=0,op=null;
  if(keep){st=db.scrollTop;op=[].map.call(db.querySelectorAll('details'),function(d){return d.open})}
- h+='<details open><summary>Prices (PKR)</summary>'+['snail','burrow','sealed','elsewhere'].map(function(k){return inp('cats.'+k+'.price',esc(c[k].name),c[k].price,'number')}).join('')+'</details>';
+ h+='<details open><summary>Prices (PKR)</summary>'+['snail','burrow','sealed','elsewhere'].map(function(k){return inp('cats.'+k+'.price',esc(c[k].name)+(k==='snail'?' (per month, used to work out savings)':''),c[k].price,'number')}).join('')+'</details>';
  h+='<details><summary>Front page words</summary>'+inp('home.gate','Line on the entrance',S.home.gate)+inp('home.kicker','Line above the four paths',S.home.kicker)+inp('home.title','Heading above the four paths',S.home.title)+'</details>';
  h+='<details><summary>Contact and delivery</summary>'+inp('site.insta','Instagram link',S.site.insta)+inp('site.handle','Instagram name shown',S.site.handle)+inp('site.delivery','Delivery time',S.site.delivery)+'<p class="dhint">Shown in the footer, on the order forms and on the thank-you page.</p></details>';
- h+=catEd('snail','Monthly Snail Mail Club',IMG.cottage,IMG.cottage,'<h4 class="edh">What is inside the envelope</h4>'+listRows('inside.snail',['t','d'],{t:'Item',d:'Short description'})+'<button class="addb" data-add="inside.snail">Add an item</button>');
+ h+=catEd('snail','Monthly Snail Mail Club',IMG.cottage,IMG.cottage,'<h4 class="edh">What is inside the envelope</h4>'+listRows('inside.snail',['t','d'],{t:'Item',d:'Short description'})+'<button class="addb" data-add="inside.snail">Add an item</button><h4 class="edh">Subscription plans</h4>'+listRows('plans',['months','price'],{months:'Months',price:'Price (PKR)'},{months:'number',price:'number'})+'<button class="addb" data-add="plans">Add a plan</button><p class="dhint">Savings are worked out for you by comparing each plan with the monthly price under Prices (PKR).</p>'+pastEd());
  h+='<details open><summary>This month\'s snail mail theme</summary>'+inp('theme.month','Month',t.month)+inp('theme.name','Theme name',t.name)+inp('theme.blurb','One line about it',t.blurb)+'<p class="dhint">Change these every month. Nothing else on the page needs to change.</p></details>';
  h+=catEd('burrow','Bramblewood Book Burrow',IMG.door,IMG.door,'');
  h+='<details><summary>Book shelves</summary>'+listRows('shelves',['name','genre'],{name:'Shelf name',genre:'Genre'})+'<button class="addb" data-add="shelves">Add a shelf</button>'+inp('pick.name','Blind pick name',S.pick.name)+inp('pick.genre','Blind pick label',S.pick.genre)+area('pick.text','Blind pick description',S.pick.text,4)+'</details>';
@@ -524,7 +571,7 @@ function shrink(file,max,cb,q){var fr=new FileReader();fr.onerror=function(){cb(
 function place(d,cb){if(!PUBLIC)return cb(d);stat('Uploading photo…');api({action:'photo',pass:PASS,data:d},90000).then(function(r){if(r&&r.ok&&r.url){stat('Photo uploaded');cb(r.url)}else{stat('Could not upload the photo. '+(r&&r.error==='auth'?'Open the owner link and sign in again.':'Try again.'));cb(null)}}).catch(function(){stat('Could not upload the photo. Check your internet and try again.');cb(null)})}
 $('#dbody').addEventListener('input',function(e){var t=e.target;
  if(t.dataset.path){setp(t.dataset.path,t.type==='number'?(Number(t.value)||0):t.value)}
- else if(t.dataset.list){var L=getp(t.dataset.list),i2=+t.dataset.i;if(t.dataset.k)L[i2][t.dataset.k]=t.value;else L[i2]=t.value}
+ else if(t.dataset.list){var L=getp(t.dataset.list),i2=+t.dataset.i;if(t.dataset.k)L[i2][t.dataset.k]=t.type==='number'?(Number(t.value)||0):t.value;else L[i2]=t.value}
  else return;save();render(true)});
 $('#dbody').addEventListener('change',function(e){var t=e.target;
  if(t.dataset.check){setp(t.dataset.check,t.checked);save();render(true);return}
@@ -535,7 +582,7 @@ $('#dbody').addEventListener('click',function(e){var t=e.target.closest('button'
  else if(t.dataset.add){var n=t.dataset.add;getp(n).push(tplFor(n));save();openEd(true);render(true)}
  else if(t.dataset.imgreset){setp(t.dataset.imgreset,'');save();openEd(true);render(true)}
  else if(t.dataset.ed==='copy'){var s2=JSON.stringify(S,function(k,v){return typeof v==='string'&&v.indexOf('data:image')===0?'[photo]':v},1),m=$('#edmsg');try{navigator.clipboard.writeText(s2).then(function(){m.textContent='Copied.'},function(){m.textContent='Could not copy.'})}catch(x){m.textContent='Could not copy.'}}
- else if(t.dataset.ed==='reset'){if(t.dataset.sure){S=clone(DEF);save();openEd(true);render(true)}else{t.dataset.sure='1';t.textContent='Tap again to reset'}}});
+ else if(t.dataset.ed==='reset'){if(t.dataset.sure){S=clone(DEF);fixPast();save();openEd(true);render(true)}else{t.dataset.sure='1';t.textContent='Tap again to reset'}}});
 
 /* ---------- owner sign-in and live content ---------- */
 function showUnlock(){$('#unlock').hidden=false;$('#unlockmsg').textContent='';setTimeout(function(){$('#pw').focus()},60)}
@@ -551,7 +598,7 @@ $('#retry').addEventListener('click',function(){dirty=true;doSave()});
 function loadContent(n){if(!PUBLIC)return;
  fetch(API+'?action=content&_='+Date.now()).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(r){
   if(!r||!r.ok)throw 0;loaded=true;
-  if(r.content){S=merge(clone(DEF),r.content);var rt=cur();if(!/-order$|^request-universe$/.test(rt))render(true)}
+  if(r.content){S=merge(clone(DEF),r.content);fixPast();var rt=cur();if(!/-order$|^request-universe$/.test(rt))render(true)}
  }).catch(function(){if(n<3)setTimeout(function(){loadContent(n+1)},4000)})}
 /* ---------- past editions viewer ---------- */
 function openLb(k,i){var a=S.albums[k],e=a&&a.items[i];if(!e)return;$('#lbbody').innerHTML='<h2>'+esc(e.title)+'</h2><p style="white-space:pre-line;margin-top:8px;color:var(--ink-soft)">'+esc(e.text)+'</p>'+e.photos.map(function(p){return '<img src="'+p+'" alt="">'}).join('');$('#lb').hidden=false;$('#lb').scrollTop=0;document.body.style.overflow='hidden'}
