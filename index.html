@@ -344,7 +344,7 @@ addEventListener('beforeunload',function(e){if(PUBLIC&&(dirty||saving)){e.preven
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function money(n){return 'PKR '+Number(n||0).toLocaleString('en-US')}
 var $=function(s,r){return (r||document).querySelector(s)};
-var view=$('#view'),sel={shelf:null,tea:0,world:0,method:0,plan:0,past:[]},order=null,timers=[];
+var view=$('#view'),sel={shelf:null,tea:0,world:0,method:0,plan:0,past:[],noPlan:false},order=null,timers=[];
 var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
 $('#barlogo').src=IMG.logo;
 
@@ -411,7 +411,19 @@ function pastSec(){var P=S.past;if(!P||!P.show)return '';var items=P.items||[],h
  var pr=listed.filter(function(x){return x.e.on!==false}).map(function(x){return Number(x.e.price)||0}),same=pr.length&&pr.every(function(v){return v===pr[0]});
  h+='<div class="pastbox">'+(pr.length?'<p class="pricehint">'+(same?'Each edition is <b>'+money(pr[0])+'</b>.':'Prices are shown next to each month.')+'</p>':'')+'<label class="sr" for="pastpick">Choose a past edition</label><select id="pastpick"><option value="">Choose a past month\u2026</option>'+listed.map(function(x){var gone=x.e.on===false,taken=ch.indexOf(x.i)>-1;return '<option value="'+x.i+'"'+(gone||taken?' disabled':'')+'>'+esc(pLabel(x.e))+' \u00b7 '+money(x.e.price)+(gone?' (sold out)':taken?' (added)':'')+'</option>'}).join('')+'</select>';
  if(ch.length)h+='<ul class="plist">'+ch.map(function(i){var e=S.past.items[i];return '<li><span>'+esc(pLabel(e))+'</span><b>'+money(e.price)+'</b><button type="button" class="mini" data-prm="'+i+'">Remove</button></li>'}).join('')+'</ul><p class="ptotal">Total <b>'+money(pastTotal())+'</b></p>';
- return h+'<div><button class="btn" id="pastbtn" data-go="past-order"'+(ch.length?'':' disabled')+'>Buy now</button></div></div></section>'}
+ return h+'<div><button class="btn" id="pastbtn" data-go="snail-order"'+(ch.length?'':' disabled')+'>Buy now</button></div><p class="disc" style="margin:0">You can add a monthly plan on the next page.</p></div></section>'}
+var NOSUB='No subscription, previous editions only';
+function pastListed(){var P=S.past;return !!(P&&P.show&&(P.items||[]).some(function(e){return e.on!==false&&(e.month||e.title)}))}
+function formPlanIdx(f){var sl=f.querySelector('#plan');if(!sl)return -1;var off=sl.options.length&&sl.options[0].value===NOSUB?1:0;return sl.selectedIndex-off}
+function picked(f){var a=[];f.querySelectorAll('input[name=pe]:checked').forEach(function(c){a.push(+c.value)});return a}
+function recalc(f){var pl=PL(),pi=formPlanIdx(f),p=pi>=0?pl[pi]:null,pk=picked(f),tot=p?p.price:0,parts=[];
+ pk.forEach(function(i){tot+=Number(((S.past.items||[])[i]||{}).price)||0});
+ if(p){sel.plan=pi;sel.noPlan=false;parts.push('for '+monthsTxt(p))}else sel.noPlan=true;
+ if(pk.length)parts.push(pk.length+(pk.length===1?' previous edition':' previous editions'));
+ if(f.querySelector('input[name=pe]'))sel.past=pk;
+ f.dataset.price=tot;var fp=$('#formprice'),fu=$('#formunit'),bx=$('#paybox'),m=f.querySelector('input[name=method]:checked');
+ if(fp)fp.textContent=money(tot);if(fu)fu.textContent=parts.join(' + ');
+ if(bx){bx.dataset.price=tot;bx.innerHTML=payDetails(m?m.value:S.methods[0],tot)}}
 function notes(list){return list.map(function(n,i){return '<div class="note"><i>'+(i+1)+'</i><div>'+(n.t?'<b>'+esc(n.t)+'</b><br>':'')+esc(n.d)+'</div></div>'}).join('')}
 function albumSec(k){var a=S.albums[k];if(!a||!a.show)return '';var it=a.items;return '<section class="sect"><h2>'+esc(a.title)+'</h2><p class="sub">'+esc(a.sub)+'</p>'+(it.length?'<div class="album">'+it.map(function(e,i){var cv=e.photos[0];return '<button class="alb" data-album="'+k+':'+i+'"><span class="cov">'+(cv?'<img src="'+cv+'" alt="">':'<em>No photos yet</em>')+'</span><b>'+esc(e.title)+'</b>'+(e.photos.length>1?'<small>'+e.photos.length+' photos</small>':'')+'</button>'}).join('')+'</div>':'<div class="note" style="max-width:560px"><div>Photos of past editions will appear here. Our first one is on its way.</div></div>')+'</section>'}
 /* ---------- routes ---------- */
@@ -421,15 +433,17 @@ R.forest=function(){var c=S.cats,art={snail:c.snail.img||IMG.cottage,burrow:c.bu
  return '<section class="forest"><div class="wrap"><div class="top"><p>'+esc(S.home.kicker)+'</p><h2>'+esc(S.home.title)+'</h2></div><div class="paths">'+['snail','burrow','sealed','elsewhere'].map(function(k){return '<button class="path" data-go="'+to[k]+'"><div class="art"><img src="'+art[k]+'" alt=""></div><div class="txt"><h3>'+esc(c[k].name)+'</h3><span class="tag">'+esc(c[k].tag)+'</span><span class="from">'+(k==='snail'?'':'from ')+money(c[k].price)+' '+esc(c[k].unit)+'</span></div></button>'}).join('')+'</div></div></section>'};
 R['snail-mail']=function(){var c=S.cats.snail,t=S.theme;
  var gal=[['g1','Deep in an ancient forest'],['g2','She writes a story for you'],['g3','The woodland helpers prepare it'],['g4','At the Little Post'],['g5','And at last, it finds you']];
- return page(back('forest')+'<section class="hero2"><div class="frame"><img src="'+(c.hero||IMG.cottage)+'" alt="A little cottage deep in the forest with a glowing window"></div><div><p class="eyebrow">Monthly Snail Mail Club</p><h1>'+esc(c.name)+'</h1><p class="lede">'+esc(c.about)+'</p><div class="stamp"><span>This month</span><b>'+esc(t.month)+'</b><span>&middot;</span><span>'+esc(t.name)+'</span></div><p class="disc" style="margin-top:12px">'+esc(t.blurb)+'</p><p class="eyebrow" style="margin-top:20px">Choose your plan</p><div class="plans" role="group" aria-label="Choose your plan">'+PL().map(function(p,i){var sv=planSave(p);return '<button type="button" class="plan'+(planIdx()===i?' on':'')+'" aria-pressed="'+(planIdx()===i)+'" data-plan="'+i+'"><b>'+esc(monthsTxt(p))+'</b><span class="pp">'+money(p.price)+'</span><em>'+(sv>0?'Save '+money(sv):'')+'</em></button>'}).join('')+'</div><p class="disc">Delivered across Pakistan by Pakistan Post.</p><p style="margin-top:14px"><button class="btn" id="planbtn" data-go="snail-order">Buy now &middot; '+money(PL()[planIdx()].price)+'</button></p></div></section>'+
+ return page(back('forest')+'<section class="hero2"><div class="frame"><img src="'+(c.hero||IMG.cottage)+'" alt="A little cottage deep in the forest with a glowing window"></div><div><p class="eyebrow">Monthly Snail Mail Club</p><h1>'+esc(c.name)+'</h1><p class="lede">'+esc(c.about)+'</p><div class="stamp"><span>This month</span><b>'+esc(t.month)+'</b><span>&middot;</span><span>'+esc(t.name)+'</span></div><p class="disc" style="margin-top:12px">'+esc(t.blurb)+'</p><p class="eyebrow" style="margin-top:20px">Choose your plan</p><div class="plans" role="group" aria-label="Choose your plan">'+PL().map(function(p,i){var sv=planSave(p);return '<button type="button" class="plan'+(planIdx()===i?' on':'')+'" aria-pressed="'+(planIdx()===i)+'" data-plan="'+i+'"><b>'+esc(monthsTxt(p))+'</b><span class="pp">'+money(p.price)+'</span><em>'+(sv>0?'Save '+money(sv):'')+'</em></button>'}).join('')+'</div><p class="disc">Delivered across Pakistan by Pakistan Post.</p><p style="margin-top:14px"><button class="btn" id="planbtn" data-go="snail-order">Buy now &middot; '+money(PL()[planIdx()].price)+'</button></p>'+(pastListed()?'<p class="disc" style="margin-top:8px">Want earlier months too? You can add previous editions on the next page.</p>':'')+'</div></section>'+
  pastSec()+'<section class="sect"><h2>What is inside every envelope</h2><div class="inside">'+notes(S.inside.snail)+'</div></section>'+
  '<section class="sect"><h2>How your letter travels</h2><p class="sub">From the cottage to your door.</p><div class="strip">'+gal.map(function(g){return '<figure><img src="'+IMG[g[0]]+'" alt="'+esc(g[1])+'"><figcaption>'+esc(g[1])+'</figcaption></figure>'}).join('')+'</div></section>'+albumSec('snail'))};
-R['snail-order']=function(){var c=S.cats.snail,t=S.theme,pl=PL(),i=planIdx(),p=pl[i];
- return formPage('snail','snail-mail',c.name,p.price,'for '+monthsTxt(p),'Your order','Choose your plan and tell us where to send your envelope. This month\'s theme is <b>'+esc(t.name)+'</b>.',
- '<h3 class="fh full">Your plan</h3>'+field('plan','Plan',{type:'select',opts:pl.map(planText),val:i,full:true})+'<h3 class="fh full">About you</h3>'+contact('')+payBlock(p.price),'Order now')};
-R['past-order']=function(){var ch=pastChosen();if(!ch.length){location.hash='snail-mail';return ''}var c=S.cats.snail,total=pastTotal();
- return formPage('past','snail-mail',c.name+' (previous editions)',total,'one-time','Previous editions','Check your editions below, then tell us where to send them.',
- '<h3 class="fh full">Your editions</h3><div class="full">'+ch.map(function(i){var e=S.past.items[i];return '<div class="sumline"><span>'+esc(pLabel(e))+'</span><span>'+money(e.price)+'</span></div>'}).join('')+'<div class="sumline"><span><b>Total</b></span><span><b>'+money(total)+'</b></span></div></div><h3 class="fh full">About you</h3>'+contact('')+payBlock(total),'Order now')};
+R['snail-order']=function(){var c=S.cats.snail,t=S.theme,pl=PL(),P=S.past||{items:[]},hasPast=pastListed(),av=[];
+ (P.items||[]).forEach(function(e,i){if(e.on!==false&&(e.month||e.title))av.push(i)});
+ var ch=hasPast?pastChosen():[],none=hasPast&&sel.noPlan,i=planIdx(),p=none?null:pl[i],tot=(p?p.price:0)+(hasPast?pastTotal():0),parts=[];
+ if(p)parts.push('for '+monthsTxt(p));if(ch.length)parts.push(ch.length+(ch.length===1?' previous edition':' previous editions'));
+ var opts=(hasPast?[NOSUB]:[]).concat(pl.map(planText)),selIdx=none?0:i+(hasPast?1:0);
+ var pe=hasPast?'<h3 class="fh full">Previous editions (optional)</h3><div class="f full"><div class="pays">'+av.map(function(k){var e=P.items[k];return '<label class="pay"><input type="checkbox" name="pe" value="'+k+'"'+(ch.indexOf(k)>-1?' checked':'')+'> <span>'+esc(pLabel(e))+'<small style="display:block;color:var(--ink-soft)">'+money(e.price)+'</small></span></label>'}).join('')+'</div></div>':'';
+ return formPage('snail','snail-mail',c.name,tot,parts.join(' + '),'Your order','Choose a plan, add previous editions, or both, and tell us where to send them. This month\'s theme is <b>'+esc(t.name)+'</b>.',
+ '<h3 class="fh full">Your plan</h3>'+field('plan','Plan',{type:'select',opts:opts,val:selIdx,full:true})+pe+'<h3 class="fh full">About you</h3>'+contact('')+payBlock(tot),'Order now')};
 R.burrow=function(){var c=S.cats.burrow;
  var shelves=S.shelves.map(function(s,i){return '<button type="button" class="shelf'+(sel.shelf===i?' on':'')+'" data-shelf="'+i+'" style="--spine:'+SPINES[i%8]+'"><h3>'+esc(s.name)+'</h3><small>('+esc(s.genre)+')</small></button>'}).join('')+
   '<button type="button" class="shelf pick'+(sel.shelf==='pick'?' on':'')+'" data-shelf="pick"><h3>'+esc(S.pick.name)+'</h3><small>('+esc(S.pick.genre)+')</small><p>'+esc(S.pick.text)+'</p></button>';
@@ -488,6 +502,7 @@ function go(r){if(location.hash==='#'+r)render(false);else location.hash=r}
 /* ---------- events ---------- */
 view.addEventListener('click',function(e){var t=e.target.closest('button,[data-go],a');if(!t)return;
  if(t.id==='enterBtn'){var r=t.getBoundingClientRect();sparkle(r.left+r.width/2,r.top+r.height/2,140,true);var g=$('#gate');setTimeout(function(){sparkle(innerWidth/2,innerHeight/2,160,true)},350);if(g)g.classList.add('leaving');setTimeout(function(){go('forest')},1150);return}
+ if(t.id==='pastbtn')sel.noPlan=true;else if(t.id==='planbtn'||t.dataset.plan!==undefined)sel.noPlan=false;
  if(t.dataset.plan!==undefined){sel.plan=+t.dataset.plan;view.querySelectorAll('.plan').forEach(function(b){var on=b===t;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});var pb=$('#planbtn'),pp=PL()[sel.plan];if(pb&&pp)pb.innerHTML='Buy now &middot; '+money(pp.price);return}
  if(t.dataset.prm!==undefined){sel.past=sel.past.filter(function(x){return x!==+t.dataset.prm});render(true);return}
  if(t.dataset.album){var ap=t.dataset.album.split(':');openLb(ap[0],+ap[1]);return}
@@ -497,6 +512,10 @@ view.addEventListener('click',function(e){var t=e.target.closest('button,[data-g
  if(t.dataset.world!==undefined){sel.world=+t.dataset.world;go('elsewhere-order');return}
  if(t.dataset.copy!==undefined){var v=t.dataset.copy;try{navigator.clipboard.writeText(v).then(function(){t.textContent='Copied'},function(){t.textContent='Select it'})}catch(x){t.textContent='Select it'}setTimeout(function(){t.textContent='Copy'},1600)}});
 document.addEventListener('click',function(e){var t=e.target.closest('[data-go],[data-act]');if(!t)return;if(t.dataset.act==='edit'){openEd(false)}else if(t.dataset.act==='close'){flushSave();$('#drawer').hidden=true}else if(t.dataset.go&&!view.contains(t)){go(t.dataset.go)}});
+function snailItem(f,g,c){var parts=[],pk=picked(f);
+ if(formPlanIdx(f)>=0)parts.push(g('plan')+' · starting '+S.theme.month+' ('+S.theme.name+')');
+ if(pk.length){var names=pk.map(function(i){return pLabel(S.past.items[i])}).join(' + ');parts.push('Previous editions: '+names);c.det.push(['Previous editions',names])}
+ return parts.join(' | ')}
 function tok(){return Date.now().toString(36)+Math.random().toString(36).slice(2,10)}
 function lab(el){var l=el.id?document.querySelector('label[for="'+el.id+'"]'):null;return l?l.textContent.trim():(el.name||'')}
 function collect(f){var kind=f.dataset.kind,pre=kind==='sealed'?'s_':'',cust={},det=[],files=[],method='';
@@ -513,23 +532,24 @@ function send(f){var kind=f.dataset.kind,btn=f.querySelector('button[type=submit
  var what=kind==='request'?'request':'order';
  function fail(m){err.innerHTML=m;err.hidden=false;btn.disabled=false;btn.textContent=old;try{err.scrollIntoView({block:'center',behavior:'smooth'})}catch(x){}}
  var generic='We could not send your '+what+'. Everything you typed is still here, so nothing is lost. Please check your internet and tap the button again. If it keeps failing, '+dm+'.';
+ if(kind==='snail'&&formPlanIdx(f)<0&&!picked(f).length)return fail('Please choose a monthly plan, or tick at least one previous edition.');
  f.dataset.tok=f.dataset.tok||tok();err.hidden=true;btn.disabled=true;btn.textContent=kind==='request'?'Sending…':'Sending your order. Please keep this page open…';
  var g=function(id){var e=f.querySelector('#'+id);return e?e.value:''},hp=f.elements.hp_check?f.elements.hp_check.value:'';
  if(kind==='request'){
   api({action:'request',token:f.dataset.tok,hp:hp,name:g('rn'),phone:g('rp'),email:g('re'),universe:g('ru'),love:g('rt')},60000).then(function(r){if(r&&r.ok){order={kind:'request'};sparkle(innerWidth/2,innerHeight/2,60,true);go('thanks')}else fail(generic)}).catch(function(){fail(generic)});return}
- var c=collect(f),item=kind==='snail'?g('plan')+' · starting '+S.theme.month+' ('+S.theme.name+')':kind==='past'?pastChosen().map(function(i){return pLabel(S.past.items[i])}).join(' + '):kind==='burrow'?g('shelfsel')+' / '+g('teasel'):kind==='sealed'?'Letter to '+g('to'):g('uni');
+ var c=collect(f),item=kind==='snail'?snailItem(f,g,c):kind==='burrow'?g('shelfsel')+' / '+g('teasel'):kind==='sealed'?'Letter to '+g('to'):g('uni');
  Promise.all(c.files.map(function(x){return new Promise(function(res){shrink(x.file,x.field==='shot'?1600:2200,res,x.field==='shot'?.8:.88)})})).then(function(ds){
   if(ds.some(function(d){return !d}))return fail('We could not read one of your pictures. Please choose a JPG or PNG and try again.');
   var files={};c.files.forEach(function(x,i){files[x.field]={data:ds[i],name:x.file.name}});
   return api({action:'order',token:f.dataset.tok,hp:hp,kind:kind,category:f.dataset.title,item:item,price:+f.dataset.price,method:c.method,customer:c.cust,details:c.det,files:files},90000).then(function(r){
-   if(r&&r.ok){order={kind:kind,no:r.orderNo||''};sparkle(innerWidth/2,innerHeight/2,60,true);go('thanks')}
+   if(r&&r.ok){order={kind:kind,no:r.orderNo||''};sel.past=[];sel.noPlan=false;sparkle(innerWidth/2,innerHeight/2,60,true);go('thanks')}
    else fail(r&&r.error==='missing'?'Something required was missing, so we could not save your order. Please check the form and the payment screenshot, then try again.':generic)})
  }).catch(function(){fail('We are not sure your order went through. Please tap the button again. It is safe to try again, we will not create a second order. If it keeps failing, '+dm+'.')})}
 view.addEventListener('submit',function(e){e.preventDefault();var f=e.target;
  if(!PUBLIC){order={kind:f.dataset.kind};sparkle(innerWidth/2,innerHeight/2,60,true);go('thanks');return}
  send(f)});
 view.addEventListener('change',function(e){var t=e.target;
- if(t.id==='plan'){var fm=t.closest('form'),pl2=PL(),p2=pl2[t.selectedIndex];if(p2){sel.plan=t.selectedIndex;fm.dataset.price=p2.price;var fp=$('#formprice'),fu=$('#formunit');if(fp)fp.textContent=money(p2.price);if(fu)fu.textContent='for '+monthsTxt(p2);var pbx=$('#paybox'),mm=fm.querySelector('input[name=method]:checked');if(pbx){pbx.dataset.price=p2.price;pbx.innerHTML=payDetails(mm?mm.value:S.methods[0],p2.price)}}return}
+ if(t.id==='plan'||t.name==='pe'){recalc(t.closest('form'));return}
  if(t.id==='pastpick'){if(t.value!==''){sel.past.push(+t.value);render(true)}return}
  if(t.name==='method'){var i=S.methods.indexOf(t.value);if(i>-1)sel.method=i;var b=$('#paybox');if(b)b.innerHTML=payDetails(t.value,+b.dataset.price)}
  if(t.name==='wmode'){var mine=t.value==='mine';view.querySelectorAll('[data-grp]').forEach(function(w){var on=w.dataset.grp===(mine?'mine':'ai');w.hidden=!on;w.querySelectorAll('input,textarea,select').forEach(function(c){c.disabled=!on})})}});
