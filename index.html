@@ -410,9 +410,10 @@ function intlCta(id,go,c,label){if(!hasIntl(c))return '';return '<div class="int
 function numOf(t){return parseFloat(String(t||'').replace(/[^0-9.]/g,''))||0}
 function intlTotal(hasPlan,npast){var sn=S.cats.snail.intl,pi=(S.past||{}).intl,sym=(String(sn||pi||'$').match(/^[^\d]*/)||['$'])[0].trim()||'$',t=(hasPlan?numOf(sn):0)+npast*numOf(pi);return t>0?sym+(t%1?t.toFixed(2):t):String(sn||'')}
 function cFee(c){return Number(c&&c.courierFee)||0}
-function courierLine(c){return cFee(c)>0&&c.courierNote?'<p class="disc courier">'+esc(c.courierNote)+' (Another courier: <b>+'+money(cFee(c))+'</b>)</p>':''}
-function courierAdd(f){var x=f.querySelector('#courier');return x&&x.checked&&!x.disabled&&!isIntl(f)?cFee(S.cats[f.dataset.kind]):0}
-function courierBox(c){return cFee(c)>0?'<div data-ship="pk" style="display:contents"><div class="f full"><p class="disc" style="margin:0">'+esc(c.courierNote||'')+'</p><label class="pay" style="margin-top:8px"><input type="checkbox" id="courier"> <span>'+esc(c.courierLabel||'Use another courier service')+'<small style="display:block;color:var(--ink-soft)">+'+money(cFee(c))+' added to this item</small></span></label></div></div>':''}
+function courierLine(c){return cFee(c)>0&&c.courierNote?'<p class="disc courier">'+esc(c.courierNote)+' (Another courier: <b>+'+money(cFee(c))+(c===S.cats.snail?' per month':'')+'</b>)</p>':''}
+function snailPieces(f){var pi=formPlanIdx(f),pl=PL(),p=pi>=0?pl[Math.min(pi,pl.length-1)]:null;return (p?Number(p.months)||1:0)+picked(f).length}
+function courierAdd(f){var x=f.querySelector('#courier');if(!x||!x.checked||x.disabled||isIntl(f))return 0;var k=f.dataset.kind,fee=cFee(S.cats[k]);return k==='snail'?fee*Math.max(snailPieces(f),1):fee}
+function courierBox(c){return cFee(c)>0?'<div data-ship="pk" style="display:contents"><div class="f full"><p class="disc" style="margin:0">'+esc(c.courierNote||'')+'</p><label class="pay" style="margin-top:8px"><input type="checkbox" id="courier"> <span>'+esc(c.courierLabel||'Use another courier service')+'<small style="display:block;color:var(--ink-soft)">+'+money(cFee(c))+(c===S.cats.snail?' for every month or edition in this order':' added to this item')+'</small></span></label></div></div>':''}
 function isIntl(f){var r=f.querySelector('input[name=ship]:checked');return !!r&&r.value==='intl'}
 function shipApply(f){var intl=isIntl(f),k=f.dataset.kind,c=S.cats[k]||{};sel.ship=intl?'intl':'pk';
  f.querySelectorAll('[data-ship]').forEach(function(w){var h=(w.dataset.ship==='intl')!==intl;w.hidden=h;w.querySelectorAll('input,textarea,select').forEach(function(x){x.disabled=h})});
@@ -456,7 +457,7 @@ function pastListed(){var P=S.past;return !!(P&&P.show&&(P.items||[]).some(funct
 function formPlanIdx(f){var sl=f.querySelector('#plan');if(!sl)return -1;var off=sl.options.length&&sl.options[0].value===NOSUB?1:0;return sl.selectedIndex-off}
 function picked(f){var a=[];f.querySelectorAll('input[name=pe]:checked').forEach(function(c){a.push(+c.value)});return a}
 function recalc(f){var I=isIntl(f),pl=I?IPL():PL(),pi=formPlanIdx(f),p=pi>=0?pl[Math.min(pi,pl.length-1)]:null,pk=picked(f),tot=p?p.price:0,parts=[];
- if(I)tot+=pk.length*numOf(S.past.intl);else{pk.forEach(function(i){tot+=Number(((S.past.items||[])[i]||{}).price)||0});if(courierAdd(f)){tot+=cFee(S.cats.snail);parts.push('another courier')}}
+ if(I)tot+=pk.length*numOf(S.past.intl);else{pk.forEach(function(i){tot+=Number(((S.past.items||[])[i]||{}).price)||0});if(courierAdd(f)){tot+=courierAdd(f);parts.push('another courier')}}
  if(p){sel.plan=pi;sel.noPlan=false;parts.push('for '+monthsTxt(p))}else sel.noPlan=true;
  if(pk.length)parts.push(pk.length+(pk.length===1?' previous edition':' previous editions'));
  if(f.querySelector('input[name=pe]'))sel.past=pk;
@@ -479,7 +480,7 @@ function addToCart(f){var kind=f.dataset.kind,btn=f.querySelector('button[type=s
  err.hidden=true;btn.disabled=true;
  var g=function(id){var e=f.querySelector('#'+id);return e?e.value:''},c=collect(f),item=kind==='snail'?snailItem(f,g,c):kind==='burrow'?g('shelfsel')+' / '+g('teasel'):kind==='sealed'?'Letter to '+g('to'):g('uni'),
   price=intl?(kind==='snail'?+f.dataset.price:numOf(c0.intl)):+f.dataset.price+(kind==='snail'?0:courierAdd(f));
- if(courierAdd(f)){item+=' + another courier';c.det.push(['Courier',(c0.courierLabel||'Another courier service')+' (+PKR '+cFee(c0)+')'])}
+ if(courierAdd(f)){item+=' + another courier';c.det.push(['Courier',(c0.courierLabel||'Another courier service')+' (+PKR '+courierAdd(f)+')'])}
  Promise.all(c.files.map(function(x){return new Promise(function(res){shrink(x.file,2200,res,.88)})})).then(function(ds){
   if(ds.some(function(d){return !d}))return fail('We could not read your picture. Please choose a JPG or PNG and try again.');
   var files={};c.files.forEach(function(x,i){files[x.field]={data:ds[i],name:x.file.name}});
